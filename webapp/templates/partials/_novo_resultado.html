@@ -1,0 +1,20 @@
+{% if erro %}
+  <p style="background:var(--critical); color:white; padding:0.6rem 0.9rem; border-radius:8px">{{ erro }}</p>
+{% elif info %}
+  <div class="card">
+    <p class="mb-1">{{ icon('check-circle') }} Certificado lido com sucesso. Validade real: <strong>{{ info.data_validade | br_date }}</strong>
+      (emitido em {{ info.data_emissao | br_date }})</p>
+    <form hx-post="{{ confirmar_url }}" hx-target="#novo-resultado" hx-swap="innerHTML">
+      <input type="hidden" name="token" value="{{ token }}">
+      <div class="field-row">
+        <div class="field"><label>Empresa</label><input type="text" name="empresa" value="{{ info.empresa_sugerida }}" required></div>
+        <div class="field"><label>CNPJ</label><input type="text" name="cnpj" value="{{ info.cnpj_sugerido }}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Sócio/Responsável</label><input type="text" name="nome_socio"></div>
+        <div class="field"><label>Telefone (WhatsApp)</label><input type="tel" name="telefone" placeholder="(11) 91234-5678"></div>
+      </div>
+      <button type="submit" class="btn btn-primary">{{ icon('save') }} Salvar certificado</button>
+    </form>
+  </div>
+{% endif %}

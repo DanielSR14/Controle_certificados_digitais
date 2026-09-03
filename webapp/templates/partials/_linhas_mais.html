@@ -1,0 +1,7 @@
+{% from "partials/_linha_certificado.html" import linha, trigger_carregar_mais %}
+{% for c in certificados %}
+{{ linha(c) }}
+{% endfor %}
+{% if tem_mais %}
+{{ trigger_carregar_mais(proxima_url) }}
+{% endif %}

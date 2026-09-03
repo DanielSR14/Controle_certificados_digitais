@@ -1,0 +1,96 @@
+<div class="card mb-1">
+  <div class="flex-between">
+    <h3 style="margin:0.1rem 0">{{ cert.empresa }}</h3>
+    <div class="flex gap-1">
+      <span class="badge {{ linha.situacao | badge_class }}">{{ linha.situacao }}</span>
+      <a class="btn btn-sm" href="{{ url_for('mensagens.individual', cert_id=cert.id) }}">{{ icon('message-circle') }} Mensagem</a>
+    </div>
+  </div>
+  <p class="muted" style="margin:0.3rem 0 1rem 0">
+    Titular no certificado: {{ cert.subject_cn or "-" }} · Emissor: {{ cert.issuer_cn or "-" }}
+  </p>
+  <div class="grid grid-4">
+    <div><div class="kpi-label">Dias restantes</div><div class="kpi-value" style="font-size:1.3rem">{{ linha.dias_restantes }}</div></div>
+    <div><div class="kpi-label">Vencimento</div><div class="kpi-value" style="font-size:1.3rem">{{ cert.data_validade | br_date }}</div></div>
+    <div><div class="kpi-label">Emissão</div><div class="kpi-value" style="font-size:1.3rem">{{ cert.data_emissao | br_date }}</div></div>
+    <div><div class="kpi-label">Nº de série</div><div class="kpi-value mono" style="font-size:1rem">{{ cert.numero_serie or "-" }}</div></div>
+  </div>
+</div>
+
+<details class="card mb-1">
+  <summary style="cursor:pointer; font-weight:700">{{ icon('file-text') }} Arquivo do certificado</summary>
+  <div class="mt-1">
+    <p class="muted" style="margin:0 0 0.8rem 0">{{ cert.arquivo_nome or "Nenhum arquivo salvo." }}</p>
+    <div class="flex gap-1" style="flex-wrap:wrap">
+      <a class="btn" href="{{ url_for('certificados.baixar_arquivo', cert_id=cert.id) }}">{{ icon('download') }} Baixar arquivo original</a>
+      <button type="button" class="btn" hx-post="{{ url_for('certificados.revelar_senha', cert_id=cert.id) }}" hx-target="#senha-revelada" hx-swap="innerHTML">
+        {{ icon('eye') }} Revelar senha
+      </button>
+    </div>
+    <div id="senha-revelada" class="mt-1"></div>
+  </div>
+</details>
+
+<details class="card mb-1" open>
+  <summary style="cursor:pointer; font-weight:700">{{ icon('edit-2') }} Editar dados cadastrais</summary>
+  <form class="mt-1" hx-post="{{ url_for('certificados.editar', cert_id=cert.id) }}" hx-target="#painel-gerenciamento" hx-swap="innerHTML">
+    <div class="field-row">
+      <div class="field"><label>Empresa</label><input type="text" name="empresa" value="{{ cert.empresa }}" required></div>
+      <div class="field"><label>CNPJ</label><input type="text" name="cnpj" value="{{ cert.cnpj or '' }}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Sócio/Responsável</label><input type="text" name="nome_socio" value="{{ cert.nome_socio or '' }}"></div>
+      <div class="field"><label>Telefone (WhatsApp)</label><input type="tel" name="telefone" value="{{ cert.telefone or '' }}" placeholder="(11) 91234-5678"></div>
+    </div>
+    <button type="submit" class="btn btn-primary">{{ icon('save') }} Salvar alterações</button>
+  </form>
+</details>
+
+<details class="card mb-1">
+  <summary style="cursor:pointer; font-weight:700">{{ icon('refresh-cw') }} Atualizar / renovar certificado</summary>
+  <div class="renovar-box mt-1">
+    <p class="help-text" style="margin:0 0 1rem 0">Envie o novo arquivo emitido para este cliente. A validade é lida diretamente do certificado, não do nome do arquivo.</p>
+    <form hx-post="{{ url_for('certificados.renovar_validar', cert_id=cert.id) }}" hx-target="#renovar-resultado" hx-encoding="multipart/form-data" hx-swap="innerHTML">
+      <div class="field">
+        <label class="dropzone dropzone-renovar">
+          <input type="file" name="arquivo" accept=".pfx,.p12" required>
+          <div class="dropzone-icon">{{ icon('upload', size=26) }}</div>
+          <div class="dropzone-text"><strong>Clique para selecionar</strong> ou arraste o novo arquivo aqui</div>
+          <div class="dropzone-sub muted">Aceita .pfx ou .p12</div>
+          <div class="dropzone-filename"></div>
+        </label>
+      </div>
+      <div class="field"><label>Senha do novo certificado</label><input type="password" name="senha" required></div>
+      <button type="submit" class="btn btn-primary">{{ icon('search') }} Validar novo certificado</button>
+    </form>
+  </div>
+  <div id="renovar-resultado" class="mt-1"></div>
+</details>
+
+<details class="card">
+  <summary style="cursor:pointer; font-weight:700; color:var(--critical)">{{ icon('alert-triangle') }} Zona de risco</summary>
+  <div class="grid grid-2 mt-1">
+    <div>
+      {% if cert.status != "cancelado" %}
+      <form hx-post="{{ url_for('certificados.status', cert_id=cert.id) }}" hx-target="#painel-gerenciamento" hx-swap="innerHTML">
+        <input type="hidden" name="status" value="cancelado">
+        <button type="submit" class="btn btn-block">{{ icon('x-circle') }} Marcar como cancelado</button>
+      </form>
+      {% else %}
+      <form hx-post="{{ url_for('certificados.status', cert_id=cert.id) }}" hx-target="#painel-gerenciamento" hx-swap="innerHTML">
+        <input type="hidden" name="status" value="ativo">
+        <button type="submit" class="btn btn-block">{{ icon('rotate-ccw') }} Reativar certificado</button>
+      </form>
+      {% endif %}
+    </div>
+    <div>
+      <button type="button" class="btn btn-danger btn-block" onclick="appConfirmar({
+          titulo: 'Excluir certificado',
+          texto: 'Tem certeza que deseja excluir definitivamente o certificado de {{ cert.empresa|e }}? Esta ação não pode ser desfeita.',
+          rotuloConfirmar: 'Excluir definitivamente',
+          aoConfirmar: function() { document.getElementById('form-excluir-{{ cert.id }}').requestSubmit(); }
+        })">{{ icon('trash-2') }} Excluir definitivamente</button>
+      <form id="form-excluir-{{ cert.id }}" hx-post="{{ url_for('certificados.excluir', cert_id=cert.id) }}" hx-target="#painel-gerenciamento" hx-swap="innerHTML" style="display:none"></form>
+    </div>
+  </div>
+</details>

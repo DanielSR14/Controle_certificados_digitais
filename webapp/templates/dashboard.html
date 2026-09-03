@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="hero">
+  <h1>Controle de Certificados Digitais</h1>
+  <p>Painel geral · {{ cfg.get('nome_escritorio', '') }}{% if agora %} · atualizado em {{ agora }}{% endif %}</p>
+</div>
+
+{% if vazio %}
+  <div class="card empty-state">
+    <div class="big">{{ icon('file', size=40) }}</div>
+    <p>Nenhum certificado cadastrado ainda.</p>
+    <a class="btn btn-primary" href="{{ url_for('certificados.lista') }}">Ir para Certificados</a>
+  </div>
+{% else %}
+
+  <div class="grid grid-4 mb-1">
+    <div class="card kpi" style="--kpi-color: var(--primary)">
+      <div class="kpi-label">Certificados ativos</div>
+      <div class="kpi-value">{{ kpis.total }}</div>
+      <div class="kpi-sub">cadastrados no escritório</div>
+    </div>
+    <div class="card kpi" style="--kpi-color: var(--good)">
+      <div class="kpi-label">Válidos</div>
+      <div class="kpi-value">{{ kpis.validos }}</div>
+      <div class="kpi-sub">vencimento além de {{ dias_aviso }} dias</div>
+    </div>
+    <div class="card kpi" style="--kpi-color: var(--warning)">
+      <div class="kpi-label">Vencendo em breve</div>
+      <div class="kpi-value">{{ kpis.vence_em_breve }}</div>
+      <div class="kpi-sub">nos próximos {{ dias_aviso }} dias</div>
+    </div>
+    <div class="card kpi" style="--kpi-color: var(--critical)">
+      <div class="kpi-label">Vencidos</div>
+      <div class="kpi-value">{{ kpis.vencidos }}</div>
+      <div class="kpi-sub">precisam de renovação urgente</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-1">
+    <div class="card">
+      <div class="section-title" style="margin-top:0">Distribuição por situação</div>
+      <script type="application/json" id="dados-situacao">{{ situacao_json | safe }}</script>
+      <canvas id="chart-situacao" height="220"></canvas>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">Vencimentos nos próximos 12 meses</div>
+      <script type="application/json" id="dados-meses">{{ meses_json | safe }}</script>
+      <canvas id="chart-meses" height="220"></canvas>
+    </div>
+  </div>
+
+  <div class="section-title">{{ icon('bell') }} Avisos — certificados que precisam de atenção</div>
+  <div class="card">
+    {% if not alertas %}
+      <p class="muted" style="margin:0">Nenhum certificado vencido ou vencendo nos próximos {{ dias_aviso }} dias. Tudo em dia!</p>
+    {% else %}
+      <div class="alert-row header">
+        <div>Empresa</div><div>Sócio/Responsável</div><div>Vencimento</div><div class="alert-situacao">Situação</div><div></div><div></div>
+      </div>
+      {% for a in alertas %}
+      <div class="alert-row">
+        <div>{{ a.empresa }}</div>
+        <div>{{ a.nome_socio or "-" }}</div>
+        <div>{{ a.data_validade | br_date }}</div>
+        <div class="alert-situacao"><span class="badge {{ a.situacao | badge_class }}">{{ a.situacao }}</span></div>
+        <div class="muted">{{ a.dias_restantes }}d</div>
+        <div><a class="btn btn-sm btn-primary" href="{{ url_for('mensagens.individual', cert_id=a.id) }}">Gerar mensagem</a></div>
+      </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <div class="section-title">{{ icon('clock') }} Atividades recentes</div>
+  <div class="card">
+    {% if not historico %}
+      <p class="muted" style="margin:0">Nenhuma atividade registrada ainda.</p>
+    {% else %}
+      <table class="data-table">
+        <thead><tr><th>Quando</th><th>Empresa</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          {% for h in historico %}
+          <tr>
+            <td class="muted">{{ h.data_hora }}</td>
+            <td>{{ h.empresa }}</td>
+            <td>{{ h.tipo }}</td>
+            <td>{{ h.descricao }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+{% endif %}
+{% endblock %}

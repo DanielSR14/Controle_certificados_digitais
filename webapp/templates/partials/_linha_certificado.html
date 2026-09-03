@@ -1,0 +1,41 @@
+{% macro linha(c) %}
+<tr>
+  <td>{{ c.empresa }}</td>
+  <td class="mono">{{ c.cnpj | documento }}</td>
+  <td>{{ c.nome_socio or "-" }}</td>
+  <td>{{ c.data_validade | br_date }}</td>
+  <td>{{ c.dias_restantes }}</td>
+  <td><span class="badge {{ c.situacao | badge_class }}">{{ c.situacao }}</span></td>
+  <td>
+    <div class="row-actions">
+      <button type="button" class="btn btn-sm btn-primary"
+        hx-get="{{ url_for('certificados.painel', cert_id=c.id) }}"
+        hx-target="#painel-gerenciamento" hx-swap="innerHTML"
+        onclick="appAbrirPainel()">
+        Gerenciar
+      </button>
+      <button type="button" class="btn btn-icon btn-danger" title="Excluir certificado"
+        onclick="appConfirmar({
+          titulo: 'Excluir certificado',
+          texto: 'Tem certeza que deseja excluir definitivamente o certificado de {{ c.empresa|e }}? Esta ação não pode ser desfeita.',
+          rotuloConfirmar: 'Excluir definitivamente',
+          aoConfirmar: function() { document.getElementById('form-excluir-tabela-{{ c.id }}').requestSubmit(); }
+        })">
+        {{ icon('trash-2') }}
+      </button>
+      <form id="form-excluir-tabela-{{ c.id }}" hx-post="{{ url_for('certificados.excluir', cert_id=c.id) }}" hx-target="#painel-gerenciamento" hx-swap="innerHTML" style="display:none"></form>
+    </div>
+  </td>
+</tr>
+{% endmacro %}
+
+{% macro trigger_carregar_mais(url) %}
+<tr class="linha-carregar-mais" id="trigger-carregar-mais">
+  <td colspan="7" style="text-align:center; padding:0.9rem">
+    <button type="button" class="btn btn-sm"
+      hx-get="{{ url }}" hx-target="#trigger-carregar-mais" hx-swap="outerHTML">
+      {{ icon('chevron-down') }} Carregar mais
+    </button>
+  </td>
+</tr>
+{% endmacro %}

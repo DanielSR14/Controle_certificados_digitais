@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Mensagens{% endblock %}
+{% block content %}
+
+<a class="btn btn-sm mb-1" href="{{ url_for('certificados.lista') }}">{{ icon('arrow-left') }} Voltar</a>
+
+<div class="hero">
+  <h1>Mensagens de aviso</h1>
+  <p>Gere o texto pronto para copiar e colar, ou enviar direto pelo WhatsApp.</p>
+</div>
+
+{% if vazio %}
+  <div class="card empty-state">
+    <div class="big">{{ icon('message-circle', size=40) }}</div>
+    <p>Nenhum certificado cadastrado ainda.</p>
+  </div>
+{% else %}
+
+<div class="card mb-1 cert-picker" style="max-width:640px">
+  <label>Selecione o certificado/cliente</label>
+  <input type="text" id="cert-picker-busca" class="command-input cert-picker-input" placeholder="Buscar por empresa ou sócio..." autocomplete="off">
+  <div class="command-results" id="cert-picker-lista" style="max-height:320px">
+    {% for o in opcoes %}
+    <div class="command-item {{ 'active' if o.id == cert_id_selecionado }}"
+         data-nome="{{ (o.empresa ~ ' ' ~ (o.nome_socio or '')) | lower }}"
+         hx-get="{{ url_for('mensagens.painel', cert_id=o.id) }}" hx-target="#mensagem-painel" hx-swap="outerHTML" hx-push-url="true"
+         onclick="appSelecionarCertItem(this)">
+      <div class="command-item-main">
+        <strong>{{ o.empresa }}</strong>{% if o.nome_socio %}<span class="muted"> · {{ o.nome_socio }}</span>{% endif %}
+      </div>
+      <div class="flex gap-1" style="flex-shrink:0; align-items:center">
+        <span class="muted" style="font-size:0.78rem; white-space:nowrap">{{ o.data_validade | br_date }}</span>
+        <span class="badge {{ o.situacao | badge_class }}">{{ o.situacao }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="command-empty muted" id="cert-picker-vazio" style="display:none">Nenhum resultado para essa busca.</div>
+</div>
+{% include "partials/_mensagem_painel.html" %}
+
+{% endif %}
+{% endblock %}

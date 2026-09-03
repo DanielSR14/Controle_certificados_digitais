@@ -1,0 +1,24 @@
+{% from "partials/_linha_certificado.html" import linha, trigger_carregar_mais %}
+<div id="tabela-wrap" {% if oob %}hx-swap-oob="true"{% endif %}>
+  <p class="muted mb-1">{{ total }} certificado(s) encontrado(s)</p>
+  <div class="card" style="padding:0; overflow-x:auto">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Empresa</th><th>CNPJ</th><th>Sócio/Responsável</th>
+          <th>Vencimento</th><th>Dias</th><th>Situação</th><th>Gerenciar e Excluir</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in certificados %}
+        {{ linha(c) }}
+        {% else %}
+        <tr><td colspan="7" class="muted" style="text-align:center; padding:2rem">Nenhum certificado encontrado para este filtro.</td></tr>
+        {% endfor %}
+        {% if tem_mais %}
+        {{ trigger_carregar_mais(proxima_url) }}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,14 @@
+{% if erro %}
+  <p class="toast-error" style="background:var(--critical); color:white; padding:0.6rem 0.9rem; border-radius:8px; margin:0; display:flex; align-items:center; gap:0.4rem">{{ icon('alert-triangle') }} {{ erro }}</p>
+{% elif info %}
+  <div style="background:var(--primary-soft); border-radius:8px; padding:0.8rem 1rem">
+    <p style="margin:0 0 0.6rem 0">
+      {{ icon('check-circle') }} Certificado válido. Novo titular: <strong>{{ info.subject_cn }}</strong><br>
+      Nova validade: <strong>{{ info.data_validade | br_date }}</strong> (emitido em {{ info.data_emissao | br_date }})
+    </p>
+    <form hx-post="{{ confirmar_url }}" hx-target="#painel-gerenciamento" hx-swap="innerHTML" class="js-fecha-modal-sucesso">
+      <input type="hidden" name="token" value="{{ token }}">
+      <button type="submit" class="btn btn-primary">{{ icon('check-circle') }} Confirmar renovação</button>
+    </form>
+  </div>
+{% endif %}

@@ -1,0 +1,40 @@
+{% if erro %}
+  <p style="background:var(--critical); color:white; padding:0.6rem 0.9rem; border-radius:8px">{{ erro }}</p>
+{% else %}
+  {% set n_ok = itens | selectattr("status", "equalto", "ok") | list | length %}
+  {% set n_erro = itens | selectattr("status", "equalto", "erro") | list | length %}
+
+  <form hx-post="{{ url_for('config.importar_validar') }}" hx-target="#import-resultado" hx-swap="innerHTML">
+    <input type="hidden" name="token" value="{{ token }}">
+    <p class="muted mb-1">{{ itens|length }} arquivo(s) encontrado(s). Confirme/ajuste a senha de cada um:</p>
+    <div class="card" style="padding:0.9rem 1.1rem">
+      {% for item in itens %}
+      <div class="field-row" style="align-items:center; grid-template-columns: 2fr 1.3fr 0.7fr; margin-bottom:0.5rem">
+        <div>{{ icon('alert-triangle') if item.duplicata else "" }} {{ item.nome }}</div>
+        <div><input type="password" name="senha_{{ loop.index0 }}" value="{{ item.senha }}" placeholder="Senha"></div>
+        <div>
+          {% if item.status == "ok" %}<span class="badge badge-valido">OK</span>
+          {% elif item.status == "erro" %}<span class="badge badge-vencido">Falhou</span>
+          {% else %}<span class="muted">—</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary mt-1">{{ icon('check-circle') }} Validar todos</button>
+  </form>
+
+  {% if n_ok or n_erro %}
+    <p class="mt-1">{{ n_ok }} certificado(s) validado(s) com sucesso, {{ n_erro }} com falha na senha/arquivo.</p>
+    {% for item in itens if item.erro %}
+      <p class="muted" style="font-size:0.8rem; margin:0.2rem 0">{{ icon('x-circle') }} {{ item.nome }}: {{ item.erro }}</p>
+    {% endfor %}
+  {% endif %}
+
+  {% if n_ok %}
+    <form hx-post="{{ url_for('config.importar_confirmar') }}" class="mt-1">
+      <input type="hidden" name="token" value="{{ token }}">
+      <button type="submit" class="btn btn-primary">{{ icon('upload') }} Importar os {{ n_ok }} certificado(s) validados</button>
+    </form>
+  {% endif %}
+{% endif %}

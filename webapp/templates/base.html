@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Painel{% endblock %} · Controle de Certificados</title>
+  <script>
+    (function () {
+      try {
+        var tema = localStorage.getItem("app-theme");
+        if (tema) document.documentElement.setAttribute("data-theme", tema);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='vendor/htmx.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
+  <script>
+    window.APP_URLS = {
+      buscaGlobal: {{ url_for('certificados.busca_global') | tojson }},
+      certificadosLista: {{ url_for('certificados.lista') | tojson }}
+    };
+  </script>
+</head>
+<body>
+  <div id="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">{{ icon('lock', size=20) }} Controle de <span>Certificados</span></div>
+        <nav class="nav" hx-boost="true" hx-select="#app-shell" hx-target="#app-shell" hx-swap="outerHTML transition:true">
+          <a href="{{ url_for('dashboard.index') }}" class="nav-link {{ 'active' if request.blueprint == 'dashboard' }}">
+            {{ icon('bar-chart-2') }} Dashboard
+          </a>
+          <a href="{{ url_for('certificados.lista') }}" class="nav-link {{ 'active' if request.blueprint == 'certificados' }}">
+            {{ icon('file-text') }} Certificados
+          </a>
+        </nav>
+        <button type="button" class="global-search-trigger" onclick="appAbrirBuscaGlobal()">
+          {{ icon('search') }} Buscar certificado <kbd>Ctrl K</kbd>
+        </button>
+        <button type="button" class="btn btn-icon theme-toggle" onclick="appAlternarTema()" title="Alternar tema claro/escuro">
+          <span class="theme-icon-dark">{{ icon('moon') }}</span>
+          <span class="theme-icon-light">{{ icon('sun') }}</span>
+        </button>
+        <div class="topbar-office">{{ cfg.get('nome_escritorio', 'Meu Escritório Contábil') }}</div>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="toasts" id="toasts">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="toast toast-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endwith %}
+      </div>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <div id="modal-root"></div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

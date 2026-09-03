@@ -1,0 +1,8 @@
+{% if senha %}
+<div class="revelar-senha-box">
+  <input type="text" class="mono" id="senha-revelada-valor" readonly value="{{ senha }}" onclick="this.select()">
+  <button type="button" class="btn btn-sm" onclick="appCopiar(document.getElementById('senha-revelada-valor').value)">{{ icon('copy') }}</button>
+</div>
+{% else %}
+<p class="muted" style="margin:0">Não foi possível recuperar a senha deste certificado.</p>
+{% endif %}

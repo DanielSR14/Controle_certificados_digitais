@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Configurações{% endblock %}
+{% block content %}
+
+<div class="hero">
+  <h1>Configurações</h1>
+  <p>Ajuste avisos, modelo de mensagem, importação em lote e backups.</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-group="config" data-tab="geral" onclick="appAbaAtivar('config','geral')">{{ icon('settings') }} Geral e mensagem</div>
+  <div class="tab" data-group="config" data-tab="importar" onclick="appAbaAtivar('config','importar')">{{ icon('upload') }} Importar em lote</div>
+  <div class="tab" data-group="config" data-tab="dados" onclick="appAbaAtivar('config','dados')">{{ icon('download') }} Exportar e backup</div>
+</div>
+
+<div class="tab-panel" data-group="config" data-tab="geral">
+  <div class="grid grid-2">
+    <div class="card">
+      <form method="post" action="{{ url_for('config.salvar') }}">
+        <div class="field-row">
+          <div class="field"><label>Nome do escritório</label><input type="text" name="nome_escritorio" value="{{ config.nome_escritorio }}"></div>
+          <div class="field"><label>Assinatura da mensagem</label><input type="text" name="assinatura" value="{{ config.assinatura }}"></div>
+        </div>
+        <div class="field">
+          <label>Avisar quando faltar (dias)</label>
+          <input type="number" name="dias_aviso" min="1" max="365" value="{{ config.dias_aviso }}" style="max-width:140px">
+        </div>
+        <details class="mb-1">
+          <summary style="cursor:pointer; font-weight:600; color:var(--ink-secondary)">Variáveis disponíveis</summary>
+          <ul class="mt-1">
+            {% for tag, desc in placeholders %}
+            <li><code class="mono">{{ tag }}</code> — {{ desc }}</li>
+            {% endfor %}
+          </ul>
+        </details>
+        <div class="field">
+          <label>Texto do modelo</label>
+          <textarea name="template_mensagem" rows="12">{{ config.template_mensagem }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">{{ icon('save') }} Salvar configurações</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">Pré-visualização</div>
+      <p class="help-text">Exemplo com dados fictícios, usando a última configuração salva.</p>
+      <pre class="mono" style="white-space:pre-wrap; background:var(--page); padding:1rem; border-radius:8px">{{ preview }}</pre>
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" data-group="config" data-tab="importar" style="display:none">
+  <div class="card mb-1">
+    <p class="help-text mb-1">
+      Aponte para uma pasta com vários arquivos .pfx/.p12. Se o nome seguir o padrão
+      <em>"Certificado Digital {Empresa} Validade DD MM AAAA - Senha ####"</em>, a senha é sugerida
+      automaticamente — mas a validade real sempre é conferida abrindo o certificado.
+    </p>
+    <form hx-post="{{ url_for('config.importar_escanear') }}" hx-target="#import-resultado" hx-swap="innerHTML">
+      <div class="field-row" style="align-items:end">
+        <div class="field" style="margin-bottom:0"><label>Caminho da pasta</label><input type="text" name="pasta" value="{{ pasta_padrao }}"></div>
+        <div><button type="submit" class="btn btn-primary">{{ icon('search') }} Escanear pasta</button></div>
+      </div>
+    </form>
+  </div>
+  <div id="import-resultado"></div>
+</div>
+
+<div class="tab-panel" data-group="config" data-tab="dados" style="display:none">
+  {% if not tem_dados %}
+    <div class="card empty-state"><p>Nenhum certificado cadastrado ainda.</p></div>
+  {% else %}
+  <div class="card mb-1">
+    <div class="section-title" style="margin-top:0">Exportar dados</div>
+    <div class="flex gap-1">
+      <a class="btn" href="{{ url_for('config.exportar_csv') }}">{{ icon('download') }} Exportar CSV</a>
+      <a class="btn" href="{{ url_for('config.exportar_xlsx') }}">{{ icon('download') }} Exportar Excel</a>
+    </div>
+  </div>
+  {% endif %}
+  <div class="card">
+    <div class="section-title" style="margin-top:0">Backup do banco de dados</div>
+    <p class="help-text">Gera uma cópia do arquivo certificados.db (inclui senhas cifradas e histórico).</p>
+    <a class="btn" href="{{ url_for('config.backup_db') }}">{{ icon('download') }} Baixar backup (.db)</a>
+  </div>
+</div>
+
+{% endblock %}

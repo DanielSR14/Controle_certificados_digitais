@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Certificados{% endblock %}
+{% block content %}
+
+<div class="hero">
+  <h1>Certificados</h1>
+  <p>Cadastre, atualize e renove os certificados digitais dos clientes.</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-group="certificados" data-tab="lista" onclick="appAbaAtivar('certificados','lista')">{{ icon('file-text') }} Lista e gerenciamento</div>
+  <div class="tab" data-group="certificados" data-tab="novo" onclick="appAbaAtivar('certificados','novo')">{{ icon('plus-circle') }} Novo certificado</div>
+</div>
+
+<div class="tab-panel" data-group="certificados" data-tab="lista">
+  <form id="filtro-form" class="card filter-bar mb-1" hx-get="{{ url_for('certificados.tabela') }}" hx-target="#tabela-wrap" hx-swap="innerHTML"
+        hx-trigger="change, keyup delay:400ms from:input[name=busca]" hx-include="this">
+    <div class="field-row" style="align-items:end">
+      <div class="field search-field" style="margin-bottom:0">
+        <label>Buscar cliente</label>
+        <div style="position:relative">
+          {{ icon('search') }}
+          <input type="text" name="busca" value="{{ busca }}" placeholder="Empresa, sócio ou CNPJ...">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Filtrar por situação</label>
+        <div class="flex gap-1" style="flex-wrap:wrap">
+          {% for s in ["Válido", "Vence em breve", "Vencido", "Cancelado"] %}
+          <label class="chip">
+            <input type="checkbox" name="situacao" value="{{ s }}" {{ 'checked' if s in situacoes_selecionadas }}>
+            {{ s }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% include "partials/_tabela_certificados.html" %}
+</div>
+
+<div class="tab-panel" data-group="certificados" data-tab="novo" style="display:none">
+  <div style="max-width:640px; margin:0 auto">
+    <div class="card mb-1">
+      <h3 style="margin-top:0; display:flex; align-items:center; justify-content:center; gap:0.5rem">{{ icon('plus-circle') }} Cadastrar novo certificado</h3>
+      <p class="help-text mb-1" style="text-align:center">Selecione o arquivo .pfx/.p12 fornecido pela certificadora e informe a senha para conferirmos a validade real antes de salvar.</p>
+      <form hx-post="{{ url_for('certificados.novo_validar') }}" hx-target="#novo-resultado" hx-encoding="multipart/form-data" hx-swap="innerHTML">
+        <div class="field">
+          <label class="dropzone">
+            <input type="file" name="arquivo" accept=".pfx,.p12" required>
+            <div class="dropzone-icon">{{ icon('upload', size=30) }}</div>
+            <div class="dropzone-text"><strong>Clique para selecionar</strong> ou arraste o arquivo aqui</div>
+            <div class="dropzone-sub muted">Aceita .pfx ou .p12</div>
+            <div class="dropzone-filename"></div>
+          </label>
+        </div>
+        <div class="field"><label>Senha do certificado</label><input type="password" name="senha" required></div>
+        <button type="submit" class="btn btn-primary">{{ icon('search') }} Extrair dados do certificado</button>
+      </form>
+    </div>
+    <div id="novo-resultado"></div>
+  </div>
+</div>
+
+<div class="painel-overlay" id="painel-overlay">
+  <div class="painel-overlay-backdrop" onclick="appFecharPainel()"></div>
+  <div class="painel-overlay-panel">
+    <button type="button" class="btn btn-icon painel-overlay-close" onclick="appFecharPainel()" title="Fechar">{{ icon('x') }}</button>
+    <div id="painel-gerenciamento"></div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+{% if abrir_id %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    appAbrirPainel();
+    htmx.ajax("GET", {{ url_for('certificados.painel', cert_id=abrir_id) | tojson }}, { target: "#painel-gerenciamento", swap: "innerHTML" });
+  });
+</script>
+{% endif %}
+{% endblock %}

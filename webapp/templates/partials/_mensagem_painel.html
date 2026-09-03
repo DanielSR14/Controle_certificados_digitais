@@ -1,0 +1,31 @@
+<div id="mensagem-painel">
+{% if not painel %}
+  <div class="card"><p class="muted" style="margin:0">Selecione um certificado.</p></div>
+{% else %}
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="badge {{ painel.linha.situacao | badge_class }}">{{ painel.linha.situacao }}</span>
+      <div class="kpi-value mt-1" style="font-size:1.6rem">{{ painel.linha.dias_restantes }} dias</div>
+      <p class="mt-1" style="line-height:1.9">
+        <strong>Empresa:</strong> {{ painel.cert.empresa }}<br>
+        <strong>CNPJ:</strong> {{ painel.cert.cnpj or "-" }}<br>
+        <strong>Sócio/Responsável:</strong> {{ painel.cert.nome_socio or "-" }}<br>
+        <strong>Telefone:</strong> {{ painel.cert.telefone or "-" }}<br>
+        <strong>Vencimento:</strong> {{ painel.cert.data_validade | br_date }}
+      </p>
+    </div>
+    <div class="card">
+      <label>Mensagem (pode editar antes de copiar)</label>
+      <textarea id="texto-mensagem-{{ painel.cert.id }}" rows="11">{{ painel.mensagem }}</textarea>
+      <div class="flex gap-1 mt-1">
+        <button type="button" class="btn btn-primary" onclick="appCopiar(document.getElementById('texto-mensagem-{{ painel.cert.id }}').value)">{{ icon('copy') }} Copiar mensagem</button>
+        {% if painel.numero %}
+        <button type="button" class="btn" data-numero="{{ painel.numero }}" data-textarea="texto-mensagem-{{ painel.cert.id }}" onclick="appAbrirWhatsapp(this)">{{ icon('send') }} Abrir no WhatsApp</button>
+        {% else %}
+        <span class="help-text">Cadastre um telefone para habilitar o envio direto pelo WhatsApp.</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+</div>

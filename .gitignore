@@ -1,0 +1,49 @@
+# ─── Dados sensíveis (NUNCA versionar) ───────────────────────────────
+# Banco, arquivos .pfx dos clientes, chave de criptografia, exportações
+data/
+*.pfx
+*.p12
+*.pem
+*.key
+*.secret.key
+.secret.key
+*.db
+*.sqlite
+*.sqlite3
+certificados_*.csv
+certificados_*.xlsx
+*_backup_*.db
+
+# ─── Variáveis de ambiente / segredos ───────────────────────────────
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# ─── Ambiente virtual Python ────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ─── Cache / build Python ───────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# ─── Ferramentas / editores ─────────────────────────────────────────
+.claude/settings.local.json
+.vscode/
+.idea/
+*.code-workspace
+
+# ─── Sistema operacional ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
